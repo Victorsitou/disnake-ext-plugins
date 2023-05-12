@@ -690,27 +690,35 @@ class Plugin(t.Generic[BotT]):
 
     # Listeners
 
-    def add_listeners(self, *callbacks: CoroFunc, event: t.Optional[str] = None) -> None:
+    def add_listeners(
+        self, *callbacks: CoroFunc, event: t.Optional[t.Union[str, disnake.Event]] = None
+    ) -> None:
         """A method that adds multiple listeners to the plugin.
 
         Parameters
         ----------
-        event: :class:`str`
+        event: Union[:class:`str`, :class:`disnake.Event`]
             The name of a single event to register all callbacks under. If not provided,
             the callbacks will be registered individually based on function's name.
         """
         for callback in callbacks:
-            key = callback.__name__ if event is None else event
+            key = (
+                callback.__name__
+                if event is None
+                else (event if isinstance(event, str) else f"on_{event.value}")
+            )
             self._listeners.setdefault(key, []).append(callback)
 
-    def listener(self, event: t.Optional[str] = None) -> t.Callable[[CoroFuncT], CoroFuncT]:
+    def listener(
+        self, event: t.Optional[t.Union[str, disnake.Event]] = None
+    ) -> t.Callable[[CoroFuncT], CoroFuncT]:
         """A decorator that marks a function as a listener.
 
         This is the plugin equivalent of :meth:`commands.Bot.listen`.
 
         Parameters
         ----------
-        event: :class:`str`
+        event: Union[:class:`str`, :class:`disnake.Event`]
             The name of the event being listened to. If not provided, it
             defaults to the function's name.
         """
